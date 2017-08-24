@@ -13,6 +13,8 @@ const fs = require('fs'),
     findOrCreate = require('mongoose-findorcreate'),
     expressValidator = require('express-validator');
 
+ObjectId = require('mongodb').ObjectID;
+
 const app = express();
 
 mongoose.connect('mongodb://localhost:27017/twitter');
@@ -93,7 +95,13 @@ app.use(function (req, res, next) {
 })
 
 app.get('/', function(req, res) {
-    res.render("index");
+    console.log(req.session);
+    if( req.session.passport.user ) {
+      User.find({_id: ObjectId(req.session.passport.user)})
+        .then( (docs) => {
+          res.render('index', {user: docs})
+        })
+    }
 })
 
 app.get('/login/', function(req, res) {

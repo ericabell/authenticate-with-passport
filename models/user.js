@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const findOrCreate = require('mongoose-findorcreate');
+ObjectId = require('mongodb').ObjectID;
 
 mongoose.Promise = require('bluebird');
 const bcrypt = require('bcryptjs');
