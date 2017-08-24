@@ -5,7 +5,7 @@
         <h1>
           You are logged in as {{ displayName }}.
           <small><a href="/logout/">Logout</a></small>
-          
+
           <form class="" action="/sendtweet" method="post">
             <label for="tweet">Status:</label>
             <input type="text" name="tweet" value="">
@@ -17,7 +17,7 @@
       {{^user}}
       <h1>
         You are not logged in.
-        <small><a href="/login/">Login</a> | <a href="/register/">Register</a></small>
+        <small><a href="/auth/twitter">Login</a> | <a href="/register/">Register</a></small>
       </h1>
       {{/user}}
       <p class="lead">

@@ -124,11 +124,13 @@ app.use(function (req, res, next) {
 
 app.get('/', function(req, res) {
     console.log(req.session);
-    if( req.session.passport.user ) {
+    if( req.session && req.session.passport ) {
       User.find({_id: ObjectId(req.session.passport.user)})
         .then( (docs) => {
           res.render('index', {user: docs})
         })
+    } else {
+      res.render('index');
     }
 })
 
