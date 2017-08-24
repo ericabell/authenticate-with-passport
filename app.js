@@ -41,13 +41,25 @@ passport.use(new TwitterStrategy({
         let client = new Twitter({
           consumer_key: process.env.TWITTER_API_KEY,
           consumer_secret: process.env.TWITTER_API_SECRET,
-          access_token_key: token,
-          access_token_secret: tokenSecret
+          access_token_key: process.env.TWITTER_API_ACCESS_TOKEN,
+          access_token_secret: process.env.TWITTER_API_TOKEN_SECRET
         });
 
         client.get('favorites/list', (err, tweets, response) => {
-          if(err) throw err;
+          if(err) {
+            console.log('favorites/list error');
+            throw err;
+          }
           console.log(tweets);
+          console.log(response);
+        });
+
+        client.post('statuses/update', {status: 'Second automated tweet!'}, (err, tweet, response) => {
+          if(err) {
+            console.log('statuses/update error');
+            throw err;
+          }
+          console.log(tweet);
           console.log(response);
         })
 
