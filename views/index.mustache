@@ -5,6 +5,13 @@
         <h1>
           You are logged in as {{ displayName }}.
           <small><a href="/logout/">Logout</a></small>
+          
+          <form class="" action="/sendtweet" method="post">
+            <label for="tweet">Status:</label>
+            <input type="text" name="tweet" value="">
+
+            <input type="submit" name="" value="Tweet!">
+          </form>
         </h1>
       {{/user}}
       {{^user}}

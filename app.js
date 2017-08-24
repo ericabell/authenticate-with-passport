@@ -27,6 +27,13 @@ app.set('view engine', 'mustache')
 app.set('layout', 'layout');
 app.use('/static', express.static('static'));
 
+let client = new Twitter({
+  consumer_key: process.env.TWITTER_API_KEY,
+  consumer_secret: process.env.TWITTER_API_SECRET,
+  access_token_key: process.env.TWITTER_API_ACCESS_TOKEN,
+  access_token_secret: process.env.TWITTER_API_TOKEN_SECRET
+});
+
 passport.use(new TwitterStrategy({
         consumerKey: process.env.TWITTER_API_KEY,
         consumerSecret: process.env.TWITTER_API_SECRET,
@@ -38,30 +45,23 @@ passport.use(new TwitterStrategy({
         console.log(token);
         console.log(tokenSecret);
 
-        let client = new Twitter({
-          consumer_key: process.env.TWITTER_API_KEY,
-          consumer_secret: process.env.TWITTER_API_SECRET,
-          access_token_key: process.env.TWITTER_API_ACCESS_TOKEN,
-          access_token_secret: process.env.TWITTER_API_TOKEN_SECRET
-        });
+        // client.get('favorites/list', (err, tweets, response) => {
+        //   if(err) {
+        //     console.log('favorites/list error');
+        //     throw err;
+        //   }
+        //   console.log(tweets);
+        //   console.log(response);
+        // });
 
-        client.get('favorites/list', (err, tweets, response) => {
-          if(err) {
-            console.log('favorites/list error');
-            throw err;
-          }
-          console.log(tweets);
-          console.log(response);
-        });
-
-        client.post('statuses/update', {status: 'Second automated tweet!'}, (err, tweet, response) => {
-          if(err) {
-            console.log('statuses/update error');
-            throw err;
-          }
-          console.log(tweet);
-          console.log(response);
-        })
+        // client.post('statuses/update', {status: 'Second automated tweet!'}, (err, tweet, response) => {
+        //   if(err) {
+        //     console.log('statuses/update error');
+        //     throw err;
+        //   }
+        //   console.log(tweet);
+        //   console.log(response);
+        // })
 
         console.log(profile);
         // save twitter user data into mongoose
@@ -222,6 +222,19 @@ app.get('/auth/twitter/callback',
         successRedirect: '/',
         failureRedirect: '/login'
     }));
+
+app.post('/sendtweet', (req, res, next) => {
+  console.log(req.body.tweet);
+  client.post('statuses/update', {status: req.body.tweet}, (err, tweet, response) => {
+    if(err) {
+      console.log('statuses/update error');
+      throw err;
+    }
+    console.log(tweet);
+    console.log(response);
+  })
+  res.send('tweet sent!');
+})
 
 app.listen(3000, function() {
     console.log('Express running on http://localhost:3000/.')
