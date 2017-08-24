@@ -3,17 +3,19 @@ const fs = require('fs'),
     express = require('express'),
     mustacheExpress = require('mustache-express'),
     passport = require('passport'),
-    LocalStrategy = require('passport-local').Strategy,
+    // LocalStrategy = require('passport-local').Strategy,
+    TwitterStrategy = require('passport-twitter').Strategy,
     session = require('express-session'),
     bodyParser = require('body-parser'),
     User = require("./models/user"),
     flash = require('express-flash-messages'),
     mongoose = require('mongoose'),
+    findOrCreate = require('mongoose-findorcreate'),
     expressValidator = require('express-validator');
 
 const app = express();
 
-mongoose.connect('mongodb://localhost/test');
+mongoose.connect('mongodb://localhost:27017/twitter');
 
 app.engine('mustache', mustacheExpress());
 app.set('views', path.join(__dirname, 'views'));
@@ -21,30 +23,43 @@ app.set('view engine', 'mustache')
 app.set('layout', 'layout');
 app.use('/static', express.static('static'));
 
-passport.use(new LocalStrategy(
-    function(username, password, done) {
-        User.authenticate(username, password, function(err, user) {
-            if (err) {
-                return done(err)
-            }
-            if (user) {
-                return done(null, user)
-            } else {
-                return done(null, false, {
-                    message: "There is no user with that username and password."
-                })
-            }
-        })
-    }));
+passport.use(new TwitterStrategy({
+        consumerKey: process.env.TWITTER_API_KEY,
+        consumerSecret: process.env.TWITTER_API_SECRET,
+        callbackURL: "http://localhost:3000/auth/twitter/callback"
+    },
+    function (token, tokenSecret, profile, done) {
+        // function to get a user from the returned data
+        console.log('get user from the returned data');
+        console.log(token);
+        console.log(tokenSecret);
+        console.log(profile);
+        // save twitter user data into mongoose
+        User.findOrCreate({
+          provider: profile.provider,
+          providerId: profile.id
+        }, {
+          displayName: profile.displayName
+        },
+        function( err, user ) {
+          if (err) {
+            return done(err);
+          }
+          console.log('Data saved to mongo!');
+          done(null, user);
+        });
+    }
+));
 
 passport.serializeUser(function(user, done) {
     done(null, user.id);
 });
 
 passport.deserializeUser(function(id, done) {
-    User.findById(id, function(err, user) {
-        done(err, user);
-    });
+    // User.findById(id, function(err, user) {
+    //     done(err, user);
+    // });
+    done(null, id);
 });
 
 app.use(bodyParser.urlencoded({
@@ -158,6 +173,19 @@ const requireLogin = function (req, res, next) {
 app.get('/secret/', requireLogin, function (req, res) {
   res.render("secret");
 })
+
+// Redirect the user to Twitter for authentication.
+app.get('/auth/twitter', passport.authenticate('twitter'));
+
+// Twitter will redirect the user to this URL after approval.  Finish the
+// authentication process by attempting to obtain an access token.  If
+// access was granted, the user will be logged in.  Otherwise,
+// authentication has failed.
+app.get('/auth/twitter/callback',
+    passport.authenticate('twitter', {
+        successRedirect: '/',
+        failureRedirect: '/login'
+    }));
 
 app.listen(3000, function() {
     console.log('Express running on http://localhost:3000/.')
