@@ -15,6 +15,8 @@ const fs = require('fs'),
 
 ObjectId = require('mongodb').ObjectID;
 
+let Twitter = require('twitter');
+
 const app = express();
 
 mongoose.connect('mongodb://localhost:27017/twitter');
@@ -35,6 +37,20 @@ passport.use(new TwitterStrategy({
         console.log('get user from the returned data');
         console.log(token);
         console.log(tokenSecret);
+
+        let client = new Twitter({
+          consumer_key: process.env.TWITTER_API_KEY,
+          consumer_secret: process.env.TWITTER_API_SECRET,
+          access_token_key: token,
+          access_token_secret: tokenSecret
+        });
+
+        client.get('favorites/list', (err, tweets, response) => {
+          if(err) throw err;
+          console.log(tweets);
+          console.log(response);
+        })
+
         console.log(profile);
         // save twitter user data into mongoose
         User.findOrCreate({
